@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>WarpDNS - ساخت کانفیگ WireGuard فقط DNS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4">
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-4 text-center">ساخت کانفیگ WireGuard فقط برای DNS</h1>
+
+    <label class="block mb-2">انتخاب کشور:</label>
+    <select id="country" class="w-full mb-4 p-2 border rounded">
+      <option value="us">🇺🇸 آمریکا</option>
+      <option value="de">🇩🇪 آلمان</option>
+      <option value="sg">🇸🇬 سنگاپور</option>
+    </select>
+
+    <label class="block mb-2">نوع DNS:</label>
+    <select id="dns" class="w-full mb-4 p-2 border rounded">
+      <option value="1.1.1.1">1.1.1.1 (Cloudflare)</option>
+      <option value="dns.adguard.com">AdGuard</option>
+      <option value="dns.nextdns.io">NextDNS</option>
+    </select>
+
+    <button onclick="generateConfig()" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+      ساخت کانفیگ
+    </button>
+
+    <div id="result" class="mt-6 hidden">
+      <h2 class="text-lg font-semibold mb-2">کانفیگ تولید شده:</h2>
+      <pre id="configText" class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"></pre>
+      <button onclick="copyConfig()" class="mt-2 bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700">
+        کپی کانفیگ
+      </button>
+      <div id="qrcode" class="mt-4"></div>
+    </div>
+  </div>
+
+  <script>
+    function generateConfig() {
+      const country = document.getElementById("country").value;
+      const dns = document.getElementById("dns").value;
+
+      // این مقادیر ساختگی هستن. بعداً میشه از ابزار wgcf واقعی استفاده کرد.
+      const privateKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+      const publicKey = "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY";
+      const endpoint = `${country}.warp.cloudflare.com:2408`;
+
+      const config = `[Interface]
+PrivateKey = ${privateKey}
+Address = 172.16.0.2/32
+DNS = ${dns}
+
+[Peer]
+PublicKey = ${publicKey}
+AllowedIPs = 0.0.0.0/0
+Endpoint = ${endpoint}`;
+
+      document.getElementById("configText").textContent = config;
+      document.getElementById("result").classList.remove("hidden");
+
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: config,
+        width: 200,
+        height: 200
+      });
+    }
+
+    function copyConfig() {
+      const text = document.getElementById("configText").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("کانفیگ کپی شد!");
+      });
+    }
+  </script>
+</body>
+</html>
